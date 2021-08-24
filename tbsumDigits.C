@@ -67,8 +67,8 @@ void tbsumDigits(std::string digifile = "./RawData/trddigits-1ktf-2021-08-11-10h
           det = digit.getDetector()/2;
           row = digit.getPadRow();
           pad = digit.getPadCol();
-          //if (det<0){cout<<det<<endl;}
-          if (pad >=0){
+          if (pad <0 && digit.getChannel() !=22){cout<<pad<<endl;}
+          else{ //ignore all digits where channel is ==22
             channel = digit.getChannel();
             dataMap.insert(make_pair(make_tuple(det,row,pad), adcs));
             if (channel == 0 || channel == 19 || channel ==20){continue;}
@@ -82,9 +82,8 @@ void tbsumDigits(std::string digifile = "./RawData/trddigits-1ktf-2021-08-11-10h
                 tbsum[det][row][pad] += adc;
               }
               htbsum->Fill(tbsum[det][row][pad]);
-              cout<<tbsum[det][row][pad]<<endl;
             }
-          }
+        }
         }// end digitcont
       for (int d=0;d<540;d++) {
         for (int r=0;r<16;r++) {
