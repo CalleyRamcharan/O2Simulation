@@ -67,20 +67,23 @@ void tbsumDigits(std::string digifile = "./RawData/trddigits-1ktf-2021-08-11-10h
           det = digit.getDetector()/2;
           row = digit.getPadRow();
           pad = digit.getPadCol();
-          if (pad <0){cout<<pad<<endl;}
-          channel = digit.getChannel();
-          dataMap.insert(make_pair(make_tuple(det,row,pad), adcs));
-          if (channel == 0 || channel == 19 || channel ==20){continue;}
-          else{
-            for (int tb = 0; tb < o2::trd::constants::TIMEBINS; tb++) {
-              ADC_t adc = adcs[tb];
-              if (adc == (ADC_t)SimParam::instance()->getADCoutRange()) {
-                //LOG(INFO) << "Out of range ADC " << adc;
-                continue;
+          //if (det<0){cout<<det<<endl;}
+          if (pad >=0){
+            channel = digit.getChannel();
+            dataMap.insert(make_pair(make_tuple(det,row,pad), adcs));
+            if (channel == 0 || channel == 19 || channel ==20){continue;}
+            else{
+              for (int tb = 0; tb < o2::trd::constants::TIMEBINS; tb++) {
+                ADC_t adc = adcs[tb];
+                if (adc == (ADC_t)SimParam::instance()->getADCoutRange()) {
+                  //LOG(INFO) << "Out of range ADC " << adc;
+                  continue;
+                }
+                tbsum[det][row][pad] += adc;
               }
-              tbsum[det][row][pad] += adc;
+              htbsum->Fill(tbsum[det][row][pad]);
+              cout<<tbsum[det][row][pad]<<endl;
             }
-            htbsum->Fill(tbsum[det][row][pad]);
           }
         }// end digitcont
       for (int d=0;d<540;d++) {
