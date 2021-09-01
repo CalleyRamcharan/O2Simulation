@@ -22,7 +22,7 @@ using namespace std;
 
 constexpr int kMINENTRIES = 100;
 
-void tbsumDigits(std::string digifile = "./RawData/trddigits-1ktf-2021-08-11-10h17.root"
+void tbsumDigits(std::string digifile = "./RawData/trddigits-guido-2021-08-18_16h31.root"
                  //std::string hitfile = "./foo/o2sim_HitsTRD.root",
                  //std::string inputGeom = ""
                  //std::string paramfile = "./foo/o2sim_par.root"
@@ -64,26 +64,24 @@ void tbsumDigits(std::string digifile = "./RawData/trddigits-1ktf-2021-08-11-10h
       for (const auto& digit : *digitCont) {
           // loop over det, pad, row?
           auto adcs = digit.getADC();
-          det = digit.getDetector()/2;
+          det = digit.getDetector();
           row = digit.getPadRow();
           pad = digit.getPadCol();
-          if (pad <0 && digit.getChannel() !=22){cout<<pad<<endl;}
-          else{ //ignore all digits where channel is ==22
-            channel = digit.getChannel();
-            dataMap.insert(make_pair(make_tuple(det,row,pad), adcs));
-            if (channel == 0 || channel == 19 || channel ==20){continue;}
-            else{
-              for (int tb = 0; tb < o2::trd::constants::TIMEBINS; tb++) {
-                ADC_t adc = adcs[tb];
-                if (adc == (ADC_t)SimParam::instance()->getADCoutRange()) {
-                  //LOG(INFO) << "Out of range ADC " << adc;
-                  continue;
-                }
-                tbsum[det][row][pad] += adc;
+          tbsum[det][row][pad] = 0;
+          channel = digit.getChannel();
+          dataMap.insert(make_pair(make_tuple(det,row,pad), adcs));
+          if (channel == 0 || channel == 1 || channel ==20){continue;}
+          else{
+            for (int tb = 0; tb < o2::trd::constants::TIMEBINS; tb++) {
+              ADC_t adc = adcs[tb];
+              if (adc > (ADC_t)SimParam::instance()->getADCoutRange()) {
+                LOG(INFO) << "Out of range ADC " << adc;
+                continue;
               }
-              htbsum->Fill(tbsum[det][row][pad]);
+              tbsum[det][row][pad] += adc;
             }
-        }
+            htbsum->Fill(tbsum[det][row][pad]);
+          }
         }// end digitcont
       for (int d=0;d<540;d++) {
         for (int r=0;r<16;r++) {
@@ -169,6 +167,8 @@ void tbsumDigits(std::string digifile = "./RawData/trddigits-1ktf-2021-08-11-10h
   TCanvas* c4 = new TCanvas("c4", "Pulse Height", 600, 600);
   ph->Draw();
   ph->SetLineColor(kBlack);
+  double scale = (ph->GetEntries()) / 30;
+  ph->Scale(1/scale);
   TLegend* border2 = new TLegend(0.7, 0.7, 0.9, 0.9);
   border2->SetBorderSize(0); // no border
   border2->SetFillStyle(0);
